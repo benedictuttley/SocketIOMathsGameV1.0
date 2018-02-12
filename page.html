@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Real time game</title>
+		<style type="text/css">
+			html, body {
+				margin: 0;
+				padding: 20px;
+				font-family: Tahoma;
+				font-size: 16px;
+
+			}
+
+
+		
+		
+			#progress {
+				cursor: pointer;
+				background: #61AC33;
+				padding: 10px;
+				text-align: right;
+				font-weight: bold;
+				color: #FFF;
+			}
+			#progress:active {
+				color: #FFF;
+				background: #000;
+			}
+			#win {
+				width: 600px;
+				padding: 10px;
+				text-align: right;
+				font-weight: bold;
+				border-right: solid 1px #000;
+			}
+			
+			#Div1 {
+
+				cursor: pointer;
+				background: #61AC33;
+				padding: 10px;
+				text-align: right;
+				font-weight: bold;
+				color: #FFF;
+				width: 80px;
+
+			}
+		</style>
+
+		<style>
+#loader {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border: 16px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 16px solid #3498db;
+  width: 120px;
+  height: 120px;
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+		<script src="/socket.io/socket.io.js"></script>
+
+	
+		<script type="text/javascript">
+
+			// The front-end part of the game involves connecting the client to the http server that node js provides on the correct port (8080)
+			// There are also several listeners that update various div containers when the listener is triggered
+			// The only time that the script is snding something to the backend is when the user has clicked on the progress block
+
+			window.onload = function() {
+				// Assigning the HTML elements to be used to variables...
+				var welcome = document.getElementById("welcome");
+				var allUsers = document.getElementById("users");
+				var results = document.getElementById("results");
+				var socket = io.connect('http://localhost:8080');
+
+				// 	Display maths question in container held within this variable
+				var mQuestion = document.getElementById("mathsQuestion");
+				
+
+				// When a 'welcome' emit is sent from the node server then the contents of the welcome div is updated
+				// to contain the randomly generated username of the player
+				// Note: the data arguument is the user and has properties such as the user name
+				socket.on('welcome', function (data) {
+					console.log(data); // Logging connected users...
+					welcome.innerHTML = "Welcome to the game <strong>" + data.name + "</strong>";
+				});
+
+
+				// When a 'users' emit is sent from the node server then the contents of the allUsers div is updated
+				// to contain a list of the current users in the game
+				// Note: the data argument is the string containg all the usernames of the current users
+				socket.on('users', function (data) {
+					allUsers.innerHTML = "<strong>Users:</strong><br />" + data.users;
+					for(var i=0; i<data.users.length; i+=2){
+						var user = data.users[i];
+						var user_score = data.users[i+1];
+						console.log(user);
+
+						var newDiv = document.createElement("div"); 
+						newDiv.setAttribute("id", "Div1");
+						newDiv.setAttribute("style","width:" + ((user_score * 50) + 100 )+ "px");
+						newDiv.innerHTML = "<strong>Users:</strong><br />" + user + " " + user_score;
+						allUsers.appendChild(newDiv);
+						var br = document.createElement("br");
+						allUsers.appendChild(br);
+
+					};
+					//allUsers.style.width = parseInt(data.currentWidth) + "px";
+					//var newDiv = document.createElement("div"); 
+  					// and give it some content 
+  					//var newContent = document.createTextNode(data.users); 
+  					// add the text node to the newly created div
+  					//allUsers.appendChild(newContent);  
+
+				});
+
+
+				
+
+
+				// When a 'win' emit is sent from the node server then the contents of the results div is updated
+				// so that it displayes the winner of the round just passed
+				socket.on('win', function (data) {
+					results.innerHTML = data.message;
+				});
+
+
+				// When the user answers 10 questions correctly the server emits a gameWon emit ans the game winner 
+				// div is updated so that it displays the winner for the round just passed
+
+				socket.on('gameWon', function (data) {
+					gameWinner.innerHTML = data.message;
+				});
+
+
+			
+				// Maths Question tester code
+				socket.on('newQuestion', function(data) {
+					mQuestion.innerHTML = "<strong>Maths Question:</strong><br />" + data;
+				});
+
+
+				// Math answer tester code
+				mAnswer.onclick = function myAnswer(){
+					var ans = document.getElementById("myAnswerToQuestion").value;
+					socket.emit('mathAnswer', ans);
+				}
+
+				// When the user gets the answer all current users recieve an emit that informs them of the winner and the Winner div
+				// is updated accordingly
+				socket.on('corr_ans', function(data) {
+					mathsWinner.innerHTML = data.message;
+				});
+
+				// Start game when enough users have joined and remove loading screen
+				socket.on('gameStarted', function(data) {
+					document.getElementById('loader').style.display="none";
+					document.getElementById("gameWindow").style.display = "block";
+				});
+
+
+				socket.on('gameEnded', function(data) {
+					console.log("Game Over!");
+					document.getElementById("gameWindow").style.display = "none";
+					document.getElementById('finalStats').style.display="block";
+				});
+
+				// Listener that will result in a player being allocated a new game after they have chosen to find a new game
+
+				fGame.onclick = function newGame() {
+
+					console.log("Player would be entered into queue for the new game");
+				};
+
+
+			}
+		</script>
+	
+	</head>
+	
+
+	
+
+	<body class="main">
+		
+		<!-- This div is the loading screen which is shown untill enough players have joined the game -->
+		
+		<div id="loader" class="loader"></div>
+
+			<!--Div displayed to winner of game when they have scored 10 points -->
+		<div id = "finalStats" style="display:none;">
+			<p>You are the winner of the game, congradulations!</p>
+			<br>
+
+			<!-- Form to search for new game when you are only player left in game, this can eventually just be that
+				 the player is routed to the main menu but is awarded winner points -->
+			<form id = "findGame">
+      	<input id = "fGame" type="button" value="Find New Game">
+    	</form>
+		
+		</div>
+		
+		<div id = "gameWindow" style="display:none;">
+		
+		
+	<h1>Maths Question Game</h1>
+		<h3>First player to get 10 questions correct is the winner!</h3>
+		<!-- Welcome container will show welcome message and the username of the current user -->
+		<div id="welcome"></div>
+		<!-- A marker to indicate where the endpoint of the growing div is -->
+		<div id="win">150</div>
+		<hr />
+		<!-- Shows the current users and the number of clicks they have done -->
+		<div id="users"></div>
+		<hr />
+		<!-- Shows the user that won the latest game-->
+		<div id="results"></div>
+
+		
+		<!-- Trial maths question game containers-->
+
+		<hr />
+		<!-- Shows the user the latest maths question-->
+		<div id="mathsQuestion"></div>
+
+		<hr />
+		<!-- Allows user to enter answer for the currently displayed question -->
+		<form id = "answerForm">
+      	Enter Answer: <input type="text" id = "myAnswerToQuestion">
+      	<input id = "mAnswer" type="button" value="Submit Answer">
+    	</form>
+
+    	<hr />
+		<!-- Shows the user the latest maths question-->
+		<div id="mathsWinner"></div>
+
+		<hr />
+		<!-- Shows the user the latest maths question-->
+		<div id="gameWinner"></div>
+	</div>
+	</body>
+</html>
