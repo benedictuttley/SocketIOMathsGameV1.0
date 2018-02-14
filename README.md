@@ -31,6 +31,17 @@ io.sockets.on('connection', function(socket){
 - As long as your socket.emit(label, data) is declared within the function body above, then the emit will be sent to that specific user  identified by this socket.
 
 # The use of Node js
+- This is the environement used to create the web server
 
+- See index.js for the setup of the web server using node and a package (installed using npm) called express which makes setting up the server much faster and (fewer lines of code).
 
+- If you use the code in index.js you need to make sure you have installed node and the express package
 
+# Current TODO list:
+1 - Front end styling: In particular looking at the use of the bootstrap library to create a game page that when the window size changes, it does not cause the display to become messy or cluttered. Futhermore the selection of a theme or style (colors and fonts) for the game page
+
+2 - Creation of game lobbies: Currently, when a new user joins they are placed in a game but any other users cannot play as there is only one game being played at one time. Therefore there needs to be game lobbies developed so that when new users join a game, they are placed in game lobbies and a game lobby is created for new players (who currently are not in a game lobby). When a game is over the game lobby can continue but if the users leave then the game lobby can close, in addition the game lobby does not accept new users when it is classed as full.
+
+3 - Integration of game system with rest of the platform: Specifically find a solution to the problem of transfering data from js (game system) to PHP (rest of platform). Essentially the game data, for example when a game ends and users high score or number of plays of a certain game, etc. needs to be able to be displayed on users account page and so on, so if we can find out how to senf the data directly to the mySQL database, it is then available for retrieval from the rest of the platform.
+
+4 - Integration of instant messenger with game lobby: The instant messanger program that also uses node and sockets, needs to be integrated into the game page and should work independently of the game being played - all the game lobby logic is displayed in a window and the game chat outside of this window, as a result the window contents must be able to change interchangably and the game chat will still function. The only communication in the game chat should be between current players in the game. 
